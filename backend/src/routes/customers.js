@@ -1,0 +1,14 @@
+import express from "express"
+import customerController from "../controllers/customers.js"
+
+//Usamos Router() de la libreria de express para definir los metodos HTTP a utilizar
+const router = express.Router();
+
+router.route("/")
+.get(customerController.getCustomer)
+
+router.route("/:id")
+.put(customerController.updateCustomer)
+.delete(customerController.deleteCustomer)
+
+export default router;
