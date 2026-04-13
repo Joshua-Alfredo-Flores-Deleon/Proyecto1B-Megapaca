@@ -3,30 +3,28 @@ import crypto from "crypto"; //Generar codigo aleatorio
 import jsonwebtoken from "jsonwebtoken"; // Token
 import bcryptjs from "bcryptjs"; //Encriptar
 
-import customerModel from "../models/customers.js";
+import adminModel from "../models/admin.js"
 
 import {config} from "../../config.js";
 
 //array de funciones
-const registerCustomerController = {};
+const registerAdminController = {};
 
-registerCustomerController.register = async (req, res) => {
+registerAdminController.register = async (req, res) => {
   //#1- Solicitar los datos
   const {
     name,
-    lastName,
-    birthdate,
     email,
     password,
-    isVerified
+    isVerified,
   } = req.body;
 
   try {
 
     //Validar que el correo no exista en la base de datos
-    const existsCustomer = await  customerModel.findOne({email});
-    if (existsCustomer){
-      return res.status(400).json({message: "Customer already exist"})
+    const existsAdmin = await  adminModel.findOne({email});
+    if (existsAdmin){
+      return res.status(400).json({message: "Admin already exist"})
     }
 
     //  Encriptar la contraseña
@@ -39,12 +37,10 @@ registerCustomerController.register = async (req, res) => {
     const token = jsonwebtoken.sign(
       //#1- ¿Que vamos a guardar?
       {randomNumber,
-      name,
-      lastName,
-      birthdate,
-      email,
-      password: passwordHased,
-      isVerified
+       name,
+       email,
+       password: passwordHased,
+       isVerified
     },
 
       //#2-Secret key
@@ -90,7 +86,7 @@ registerCustomerController.register = async (req, res) => {
 
 //Verificar el codigo que acabamos de enviar
 
-registerCustomerController.verifyCode = async (req, res) => {
+registerAdminController.verifyCode = async (req, res) => {
   try {
     //Solicitamos el codigo que escribieron en el frontend
     const {verificationCodeRequest} = req.body
@@ -101,13 +97,11 @@ registerCustomerController.verifyCode = async (req, res) => {
     //Extrar toda la informacion del token
     const decoced = jsonwebtoken.verify(token, config.JWT.secret);
     const {
-      randomNumber: storedCode,
-      name,
-      lastName,
-      birthdate,
-      email,
-      password,
-      isVerified,
+       randomNumber: storedCode,
+       name,
+       email,
+       password,
+       isVerified,   
     } = decoced;
 
     //Comparar lo que el usuario escribio con el codigo esta en el token
@@ -116,20 +110,18 @@ registerCustomerController.verifyCode = async (req, res) => {
     }
 
     //Si todo esta bien y el usuario escribe el codigolo registramos en la base de datos
-    const NewCustomer = new customerModel({
-      name,
-      lastName,
-      birthdate,
-      email,
-      password,
-      isVerified: true,
+    const NewAdmin = new adminModel({
+    name,
+    email,
+    password,
+    isVerified: true,
     });
 
-    await NewCustomer.save();
+    await NewAdmin.save();
 
     res.clearCookie("RegistrarionCookie")
 
-    return res.status(200).json({message: "Customer register"})
+    return res.status(200).json({message: "Admin register"})
 
   } catch (error) {
     console.log("error"+error)
@@ -137,4 +129,4 @@ registerCustomerController.verifyCode = async (req, res) => {
   }
 };
 
-export default registerCustomerController;
+export default registerAdminController;

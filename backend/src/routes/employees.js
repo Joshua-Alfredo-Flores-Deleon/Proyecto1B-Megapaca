@@ -6,8 +6,7 @@ const router = express.Router();
 
 router
   .route("/")
-  .get(employeeController.getEmployees)
-  .post(employeeController.insertEmployee);
+  .get(employeeController.getEmployees);
 
 router
   .route("/:id")

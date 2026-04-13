@@ -10,30 +10,6 @@ employeeController.getEmployees = async (req, res) => {
   res.json(employees);
 };
 
-//INSERT
-employeeController.insertEmployee = async (req, res) => {
-  //#1-SOlicto los datos
-  const { name, lastName, salary, DUI, phone, email, password, idBranches } =
-    req.body;
-
-  //#2- lleno mi modelo con los datos que acabo de pedir
-  const newEmployee = new employeesModel({
-    name,
-    lastName,
-    salary,
-    DUI,
-    phone,
-    email,
-    password,
-    idBranches,
-  });
-
-  //#3- Guardo todo en la base de datos
-  await newEmployee.save();
-
-  res.json({ message: "Employee saved" });
-};
-
 //ELIMINAR
 employeeController.deleteEmployee = async (req, res) => {
   await employeesModel.findByIdAndDelete(req.params.id);
@@ -43,7 +19,7 @@ employeeController.deleteEmployee = async (req, res) => {
 //ACTUALIZAR
 employeeController.updateEmployee = async (req, res) => {
   //#1- Solicito los nuevos datos
-  const { name, lastName, salary, DUI, phone, email, password, idBranches } =
+  const { name, lastName, salary, DUI, phone, email, password, idBranches, isVerify } =
     req.body;
   //#2- Actualizo
   await employeesModel.findByIdAndUpdate(
@@ -57,6 +33,7 @@ employeeController.updateEmployee = async (req, res) => {
       email,
       password,
       idBranches,
+      isVerify,
     },
     { new: true },
   );
