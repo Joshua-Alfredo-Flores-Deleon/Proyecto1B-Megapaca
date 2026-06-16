@@ -1,4 +1,4 @@
-import customerModel from "../models/customers.js";
+import adminModel from "../models/admin.js";
 
 import bcrypt from "bcryptjs";
 import jsonwebtoken from "jsonwebtoken";
@@ -6,9 +6,9 @@ import jsonwebtoken from "jsonwebtoken";
 import { config } from "../../config.js";
 
 //Array de funciones
-const loginCustomersController = {};
+const loginAdminController = {};
 
-loginCustomersController.login = async (req, res) => {
+loginAdminController.login = async (req, res) => {
   //#1- Solicito los datos
   const { email, password } = req.body;
 
@@ -20,37 +20,37 @@ loginCustomersController.login = async (req, res) => {
 
   try {
     //#1-Buscar el correo electrónico en la base de datos
-    const customerFound = await customerModel.findOne({ email });
+    const adminFound = await adminModel.findOne({ email });
 
     //Si no existe el correo en la base de datos
-    if (!customerFound) {
-      return res.status(400).json({ message: "Customer not found" });
+    if (!adminFound) {
+      return res.status(400).json({ message: "Admin not found" });
     }
 
     //Verificar si el usuario está bloqueado
-    if (customerFound.timeOut && customerFound.timeOut > Date.now()) {
+    if (adminFound.timeOut && adminFound.timeOut > Date.now()) {
       return res.status(403).json({ message: "Cuenta bloqueada" });
     }
 
     //Validar la contraseña
-    const isMatch = await bcrypt.compare(password, customerFound.password);
+    const isMatch = await bcrypt.compare(password, adminFound.password);
 
     if (!isMatch) {
-      customerFound.loginAttemps = (customerFound.loginAttemps || 0) + 1;
+      adminFound.loginAttemps = (adminFound.loginAttemps || 0) + 1;
 
       //Si llega a 5 intentos fallidos se bloquea la cuenta
-      if (customerFound.loginAttemps >= 100) {
-        customerFound.timeOut = Date.now() + 5 * 60 * 1000;
-        customerFound.loginAttemps = 0;
+      if (adminFound.loginAttemps >= 5) {
+        adminFound.timeOut = Date.now() + 5 * 60 * 1000;
+        adminFound.loginAttemps = 0;
 
-        await customerFound.save();
+        await adminFound.save();
 
         return res
           .status(403)
           .json({ message: "Cuenta bloqueda por multiples intentos fallidos" });
       }
 
-      await customerFound.save();
+      await adminFound.save();
 
       return res.status(401).json({message: "Contraseña incorrecta"})
 
@@ -58,13 +58,13 @@ loginCustomersController.login = async (req, res) => {
     
 
     //Resetear intentos si login correcto
-    customerFound.loginAttemps = 0;
-    customerFound.timeOut = null;
+    adminFound.loginAttemps = 0;
+    adminFound.timeOut = null;
 
     //Generar el token
     const token = jsonwebtoken.sign(
       //#1- Que datos vamos a guardar
-      { id: customerFound._id, userType: "Customer" },
+      { id: adminFound._id, userType: "Admin" },
       //#2- secret key
       config.JWT.secret,
       //#3- Cuando expira
@@ -81,4 +81,4 @@ loginCustomersController.login = async (req, res) => {
   }
 };
 
-export default loginCustomersController;
+export default loginAdminController;
